@@ -1,0 +1,17 @@
+{
+  "name": "qr-event-system",
+  "version": "1.0.0",
+  "private": true,
+  "description": "QR event attendance system on Google Apps Script + Sheets + Drive",
+  "scripts": {
+    "test": "node scripts/build.js && node tests/offline-harness.js",
+    "login": "clasp login",
+    "push": "node scripts/build.js && clasp push",
+    "deploy": "clasp deploy --description \"release\"",
+    "open": "clasp open",
+    "build": "node scripts/build.js"
+  },
+  "devDependencies": {
+    "@google/clasp": "^2.4.2"
+  }
+}

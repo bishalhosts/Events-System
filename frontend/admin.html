@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html><head><base target="_top">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Event Admin</title>
+<!--@css css/main.css-->
+<!--@css css/admin.css-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+<body>
+<dialog id="dlg" style="border:1px solid #e3e6ec;border-radius:10px;min-width:min(640px,92vw)"><div style="text-align:right"><button class="sec" id="dlgClose">Close</button></div><div id="dlgBody"></div></dialog>
+<div id="msg"></div>
+<div id="loginView" style="max-width:340px;margin:12vh auto" class="card">
+  <h3>Admin sign in</h3><form id="adminLogin">
+  <label for="pw">Admin password</label><input id="pw" type="password" autocomplete="current-password" required maxlength="256" style="width:100%;margin:8px 0 16px">
+  <button id="liBtn" type="submit">Sign in</button></form></div>
+
+<div id="app" class="hide">
+<header><span>Event Admin</span><span><span id="who"></span> <button class="sec" id="navAccess">Access</button> <button class="sec" id="navSet">Settings</button> <button class="sec" id="navAudit">Audit</button> <button class="sec" id="out">Sign out</button></span></header>
+<main>
+ <div id="listView">
+  <div class="card stats"><div class="stat"><b id="dE">–</b>Events</div><div class="stat"><b id="dA">–</b>Active</div><div class="stat"><b id="dS">–</b>Scanners live</div><div class="stat"><b id="dP">–</b>Participants</div><div class="stat"><b id="dC">–</b>Checked in</div></div>
+  <div class="card"><div class="row"><input id="newName" placeholder="Event name"><input id="newDate" type="date"><input id="newVenue" placeholder="Venue"><button id="create">Create event</button></div></div>
+  <div class="card"><div class="row"><input id="evQ" placeholder="Search events"><select id="evF"><option value="">All statuses</option><option>ACTIVE</option><option>ARCHIVED</option></select></div><table><thead><tr><th>Event</th><th>Date</th><th>Scanner</th><th></th></tr></thead><tbody id="events"></tbody></table><div id="noEv" class="hide">No events yet.</div></div>
+ </div>
+ <div id="evView" class="hide">
+  <button class="sec" id="back">← Events</button> <h2 id="evName"></h2>
+  <div class="card stats"><div class="stat"><b id="sT">–</b>Registered</div><div class="stat"><b id="sC">–</b>Checked in</div><div class="stat"><b id="sR">–</b>Remaining</div><div class="stat"><b id="sP">–</b>Attendance</div></div>
+  <div class="card"><b>Recent check-ins</b><table><tbody id="recent"></tbody></table></div>
+  <div class="card"><div class="row"><button id="genQR">Generate missing QR tokens</button><button class="sec" id="impBtn">Import participants…</button><button id="saveQR">Save QR to Drive + build Doc</button><button class="sec" id="openDoc">Open QR Doc</button><button class="sec" id="zipQR">Download all QR (ZIP)</button><button class="sec" id="csvA">Export attendance CSV</button><button class="sec" id="csvN">Export not arrived CSV</button><button class="sec" id="rep">Reports</button><button class="sec" id="att">Attendance</button><button class="sec" id="pdfRep">PDF report</button><button class="sec" id="csvP">Export participants CSV</button><button class="sec" id="conn">Connect spreadsheet</button><button class="sec" id="walk">Walk-in</button></div>
+   <div id="imp" class="hide"><div class="row"><input id="srcId" placeholder="Source spreadsheet ID" size="40"><input id="srcTab" placeholder="Tab (optional)"><button class="sec" id="loadH">Load columns</button></div><div id="map"></div></div></div>
+  <div class="card"><div class="row"><input id="q" placeholder="Search name / email / phone"><select id="st"><option value="">All</option><option value="checked">Checked in</option><option value="pending">Not arrived</option></select><select id="qrF"><option value="">QR: any</option><option value="generated">QR generated</option><option value="none">QR missing</option></select></div>
+   <table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>QR</th><th>Status</th><th></th></tr></thead><tbody id="ppl"></tbody></table>
+   <div class="row"><button class="sec" id="prev">Prev</button><span id="pg"></span><button class="sec" id="next">Next</button></div></div>
+ </div>
+</main></div>
+
+
+<!--@js js/common.js-->
+<!--@js js/auth.js-->
+<!--@js js/events.js-->
+<!--@js js/event-detail.js-->
+<!--@js js/qr-export.js-->
+<!--@js js/staff-settings-reports.js-->
+<!--@js js/dashboard-attendance.js-->
+</body></html>

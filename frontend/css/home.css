@@ -1,0 +1,8 @@
+.landing{width:min(720px,100%);margin:12vh auto;padding:0 16px}
+.landing h1{margin-top:0}
+.entry-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:24px}
+.entry-option{display:flex;flex-direction:column;gap:8px;min-height:140px;padding:20px;border:1px solid var(--bd);border-radius:10px;color:var(--navy);text-decoration:none;background:#fff}
+.entry-option:hover,.entry-option:focus-visible{border-color:var(--navy);box-shadow:0 2px 8px #0002}
+.entry-option strong{font-size:20px}
+.entry-option span{color:#555;line-height:1.5}
+@media(max-width:520px){.landing{margin:8vh auto;padding:0 12px}.entry-options{grid-template-columns:1fr}.entry-option{min-height:0}}

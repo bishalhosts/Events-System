@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html><head><base target="_top">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scanner</title>
+<!--@css css/main.css-->
+<!--@css css/scanner.css-->
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+</head>
+<body>
+<header><span>Event Scanner <span id="evid"></span></span><a href="?">Home</a></header>
+<div id="access" class="card access">
+  <h2>Scanner access</h2><p>Enter the PIN provided by your administrator.</p>
+  <form id="scannerLogin"><label for="pin">Scanner PIN</label><input id="pin" type="password" inputmode="numeric" autocomplete="one-time-code" maxlength="10" required>
+  <button id="loginButton" type="submit">Continue</button></form>
+  <p id="loginError" class="hide" role="alert"></p>
+</div>
+<div id="eventPicker" class="card access hide"><label for="eventSelect">Select event</label><select id="eventSelect"></select><button id="useEvent">Continue to scanner</button></div>
+<div id="scannerApp" class="hide">
+  <div class="row scanner-top"><b id="activeEvent"></b><button class="sec" id="scannerOut">Sign out</button></div>
+  <div id="reader"></div>
+  <div class="btns"><button id="start">Start camera</button><button id="stop" disabled>Stop</button><button id="torch" disabled>Light</button></div>
+  <div class="photo-fallback"><label>Camera blocked? Scan from photo: <input type="file" id="photo" accept="image/*" capture="environment"></label></div><div id="tmp" style="display:none"></div>
+  <div id="status">Ready</div>
+  <ul id="recent" class="recent"></ul>
+  <div class="manual"><input id="manual" placeholder="Enter token manually"><button id="send">Check in</button></div>
+</div>
+
+<script>window.EVENT_ID = <?!= JSON.stringify(eventId) ?>;</script>
+<!--@js js/scanner.js-->
+</body></html>

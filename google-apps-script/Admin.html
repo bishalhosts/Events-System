@@ -287,28 +287,174 @@ dialog hr { margin: 24px 0; border: 0; border-top: 1px solid var(--line); }
 
 
 <script>
+window.APP_CONFIG = {
+  appsScriptUrl: 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE'
+};
+
+</script>
+<script>
+(function (global) {
+  const pending = new Map();
+  let frame = null;
+  let frameOrigin = '';
+  let framePromise = null;
+  let resolveFrameReady = null;
+  let sequence = 0;
+
+  function failure(message, code) {
+    return { success: false, code: code || 'BACKEND_UNAVAILABLE', message };
+  }
+
+  function directAppsScriptCall(method, args) {
+    return new Promise(resolve => {
+      try {
+        const runner = global.google.script.run
+          .withSuccessHandler(resolve)
+          .withFailureHandler(error => resolve(failure(error && error.message || 'Backend request failed')));
+        runner[method].apply(runner, args);
+      } catch (error) {
+        resolve(failure(error && error.message || 'Backend request failed'));
+      }
+    });
+  }
+
+  function isTrustedBackendOrigin(origin) {
+    return origin === 'https://script.google.com' ||
+      /^https:\/\/(?:[a-z0-9-]+\.)?script\.googleusercontent\.com$/i.test(origin);
+  }
+
+  function receiveMessage(event) {
+    if (!frame || event.source !== frame.contentWindow || !isTrustedBackendOrigin(event.origin)) return;
+    const message = event.data;
+    if (!message || typeof message !== 'object') return;
+
+    if (message.type === 'gas-bridge-ready' && message.nonce === frame.dataset.nonce) {
+      frameOrigin = event.origin;
+      if (resolveFrameReady) {
+        const resolve = resolveFrameReady;
+        resolveFrameReady = null;
+        resolve();
+      }
+      return;
+    }
+
+    if (event.origin !== frameOrigin || message.type !== 'gas-bridge-result' || typeof message.id !== 'string') return;
+    const request = pending.get(message.id);
+    if (!request) return;
+    clearTimeout(request.timer);
+    pending.delete(message.id);
+    request.resolve(message.result);
+  }
+
+  function connect() {
+    if (global.google && global.google.script && global.google.script.run) return Promise.resolve(null);
+    if (framePromise) return framePromise;
+
+    const configuredUrl = global.APP_CONFIG && global.APP_CONFIG.appsScriptUrl;
+    let backendUrl;
+    try {
+      if (!configuredUrl || configuredUrl.indexOf('PASTE_') === 0) {
+        throw new Error('Set appsScriptUrl to the deployed Apps Script /exec URL in frontend/js/config.js.');
+      }
+      backendUrl = new URL(configuredUrl);
+      if (backendUrl.protocol !== 'https:' || backendUrl.hostname !== 'script.google.com' ||
+          !/^\/macros\/(?:u\/\d+\/)?s\/[^/]+\/exec$/.test(backendUrl.pathname)) {
+        throw new Error('Configure appsScriptUrl with the deployed Apps Script /exec URL in frontend/js/config.js.');
+      }
+    } catch (error) {
+      return Promise.reject(error);
+    }
+
+    framePromise = new Promise((resolve, reject) => {
+      const nonce = 'b' + Date.now().toString(36) + (++sequence).toString(36) +
+        Math.random().toString(36).slice(2);
+      frame = document.createElement('iframe');
+      frame.title = 'Apps Script backend connection';
+      frame.setAttribute('aria-hidden', 'true');
+      frame.tabIndex = -1;
+      frame.dataset.nonce = nonce;
+      frame.style.cssText = 'position:fixed;width:1px;height:1px;left:-10px;bottom:0;border:0;opacity:0;pointer-events:none';
+      const timeout = setTimeout(() => {
+        global.removeEventListener('message', receiveMessage);
+        if (frame && frame.parentNode) frame.parentNode.removeChild(frame);
+        frame = null;
+        frameOrigin = '';
+        resolveFrameReady = null;
+        framePromise = null;
+        reject(new Error('Could not connect to Apps Script. Check the web app URL, deployment access, and FRONTEND_URL setting.'));
+      }, 20000);
+      resolveFrameReady = () => {
+        clearTimeout(timeout);
+        resolve(frame);
+      };
+      frame.onerror = () => {
+        clearTimeout(timeout);
+        global.removeEventListener('message', receiveMessage);
+        if (frame && frame.parentNode) frame.parentNode.removeChild(frame);
+        frame = null;
+        frameOrigin = '';
+        framePromise = null;
+        resolveFrameReady = null;
+        reject(new Error('Could not load the Apps Script bridge.'));
+      };
+      global.addEventListener('message', receiveMessage);
+      backendUrl.searchParams.set('bridge', '1');
+      backendUrl.searchParams.set('nonce', nonce);
+      frame.src = backendUrl.toString();
+      document.body.appendChild(frame);
+    });
+    return framePromise;
+  }
+
+  function request(method, ...args) {
+    if (global.google && global.google.script && global.google.script.run) {
+      return directAppsScriptCall(method, args);
+    }
+
+    return connect().then(() => new Promise(resolve => {
+      const id = 'r' + Date.now().toString(36) + (++sequence).toString(36);
+      const timer = setTimeout(() => {
+        pending.delete(id);
+        resolve(failure('Apps Script request timed out. Please try again.', 'TIMEOUT'));
+      }, 300000);
+      pending.set(id, { resolve, timer });
+      try {
+        frame.contentWindow.postMessage({ type: 'gas-bridge-call', id, method, args }, frameOrigin);
+      } catch (error) {
+        clearTimeout(timer);
+        pending.delete(id);
+        resolve(failure('Could not send request to Apps Script.'));
+      }
+    })).catch(error => failure(error.message || 'Could not connect to Apps Script.'));
+  }
+
+  global.AppBackend = { request };
+})(window);
+
+</script>
+<script>
 const $ = id => document.getElementById(id);
 let pendingRq=null; /* same id on retry => server returns the existing event instead of a duplicate */
 let SID = sessionStorage.getItem('asid'), CUR = null, page = 1, pollBusy = false, timer = null;
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function toast(m){ const e=$('msg'); e.textContent=m; e.style.display='block'; setTimeout(()=>e.style.display='none',3500); }
-/** Promise wrapper around google.script.run; every call carries the session id. */
-function call(fn, ...a){ return new Promise(res => google.script.run
-  .withSuccessHandler(r => { if (r && r.code === 'UNAUTHORIZED') { signedOut(); } res(r); })
-  .withFailureHandler(() => res({success:false,message:'Network error — please retry'}))[fn](SID, ...a)); }
+/** Promise wrapper around the Apps Script bridge; every call carries the session id. */
+function call(fn, ...a){ return AppBackend.request(fn, SID, ...a).then(r => {
+  if (r && r.code === 'UNAUTHORIZED') signedOut();
+  return r;
+}); }
 function signedOut(){ SID=null; sessionStorage.removeItem('asid'); clearInterval(timer); $('app').classList.add('hide'); $('loginView').classList.remove('hide'); }
 
 </script>
 <script>
-$('adminLogin').onsubmit = ev => { ev.preventDefault(); $('liBtn').disabled = true;
-  google.script.run.withSuccessHandler(r => { $('liBtn').disabled=false;
-    if(!r.success) return toast(r.message);
-    SID=r.data.sid; sessionStorage.setItem('asid',SID); $('pw').value='';
-    if(r.data.role!=='ADMIN'){ signedOut(); return toast('Admin access required'); }
-    boot(r.data.name); })
-    .withFailureHandler(() => { $('liBtn').disabled=false; toast('Network error — please retry'); })
-    .loginAdmin($('pw').value); };
-$('out').onclick = () => { google.script.run.logout(SID); signedOut(); };
+$('adminLogin').onsubmit = async ev => { ev.preventDefault(); $('liBtn').disabled = true;
+  const r = await AppBackend.request('loginAdmin', $('pw').value);
+  $('liBtn').disabled=false;
+  if(!r.success) return toast(r.message);
+  SID=r.data.sid; sessionStorage.setItem('asid',SID); $('pw').value='';
+  if(r.data.role!=='ADMIN'){ signedOut(); return toast('Admin access required'); }
+  boot(r.data.name); };
+$('out').onclick = () => { AppBackend.request('logout', SID); signedOut(); };
 
 async function boot(name){ setTimeout(loadDash,300); $('loginView').classList.add('hide'); $('app').classList.remove('hide'); $('who').textContent=name; loadEvents(); }
 if (SID) call('listEvents').then(r => r.success ? boot('') : signedOut());
@@ -317,7 +463,7 @@ if (SID) call('listEvents').then(r => r.success ? boot('') : signedOut());
 <script>
 async function loadEvents(){
   const r = await call('listEvents'); if(!r.success) return toast(r.message);
-  window.SCAN_URL = r.data.url; const t=$('events'); t.innerHTML='';
+  const t=$('events'); t.innerHTML='';
   $('noEv').classList.toggle('hide', r.data.events.length>0);
   r.data.events.filter(e=>(!$('evF').value||e.status===$('evF').value)&&e.name.toLowerCase().includes($('evQ').value.toLowerCase())).forEach(e=>{ const tr=document.createElement('tr');
     tr.innerHTML=`<td>${esc(e.name)}${e.status==='ARCHIVED'?' <span class="pill off">Archived</span>':''}</td><td>${esc(e.date)}</td><td><span class="pill ${e.published?'on':'off'}">${e.published?'Published':'Unpublished'}</span></td><td></td>`;
@@ -325,7 +471,14 @@ async function loadEvents(){
       if(e.published && !confirm('Unpublish? All check-ins for this event will be blocked.')) return;
       const x=await call('setScannerPublished',e.id,!e.published); toast(x.success?'Scanner '+(e.published?'unpublished':'published'):x.message); loadEvents(); }),
       ed=btn('Edit',()=>editEvent(e)),dl=btn('Delete',()=>delEvent(e)),ar=btn(e.status==='ARCHIVED'?'Restore':'Archive',async()=>{ if(e.status!=='ARCHIVED' && !confirm('Archive event? Scanner will be unpublished.')) return; const x=await call('setEventStatus',e.id,e.status==='ARCHIVED'?'ACTIVE':'ARCHIVED'); toast(x.success?'Updated':x.message); loadEvents(); }),
-      cp=btn('Copy link',()=>{ navigator.clipboard.writeText(r.data.url+'?page=scanner&event='+e.id); toast('Scanner link copied'); });
+      cp=btn('Copy link',()=>{
+        const url = window.google && window.google.script
+          ? new URL(r.data.url)
+          : new URL('scanner.html',window.location.href);
+        url.searchParams.set('event',e.id);
+        if(window.google && window.google.script) url.searchParams.set('page','scanner');
+        navigator.clipboard.writeText(url.toString()); toast('Scanner link copied');
+      });
     tr.lastChild.append(open,' ',tg,' ',cp,' ',ar,' ',ed,' ',dl); t.append(tr); }); }
 function btn(t,f){ const b=document.createElement('button'); b.className='sec'; b.textContent=t; b.onclick=f; return b; }
 $('create').onclick = async () => { const n=$('newName').value.trim(); if(!n) return toast('Enter a name');

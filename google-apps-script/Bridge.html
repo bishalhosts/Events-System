@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head><base target="_top"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+<body>
+<script>
+const FRONTEND_ORIGIN = <?!= JSON.stringify(frontendOrigin) ?>;
+const BRIDGE_NONCE = <?!= JSON.stringify(bridgeNonce) ?>;
+const ALLOWED_METHODS = new Set([
+  'loginAdmin', 'loginScanner', 'getScannerEvents', 'changeAdminPassword', 'logout',
+  'listEvents', 'createEvent', 'updateEvent', 'deleteEvent', 'setEventStatus', 'setScannerPublished',
+  'connectExistingSpreadsheet', 'getEventSummary', 'getDashboardSummary',
+  'getSourceHeaders', 'importParticipants', 'getParticipants', 'updateParticipant', 'addWalkIn', 'exportCSV',
+  'generateMissingQR', 'regenerateQR', 'getQRTokens', 'getQRPending', 'saveQRImages', 'buildQRDoc', 'getQRDocInfo',
+  'checkIn', 'undoCheckIn', 'getAttendance', 'generateReceipt', 'generateAttendancePDF', 'getReport',
+  'createScannerKey', 'listScannerKeys', 'updateScannerKey', 'rotateScannerKey', 'revokeScannerKey',
+  'getSettings', 'saveSettings', 'uploadLogo', 'removeLogo', 'getAuditLog', 'verifyReceipt'
+]);
+
+function reply(source, id, result) {
+  source.postMessage({ type: 'gas-bridge-result', id: id, result: result }, FRONTEND_ORIGIN);
+}
+
+window.addEventListener('message', function (event) {
+  if (event.origin !== FRONTEND_ORIGIN || event.source !== parent) return;
+  const message = event.data;
+  if (!message || message.type !== 'gas-bridge-call' ||
+      typeof message.id !== 'string' || message.id.length > 100 ||
+      typeof message.method !== 'string' || !ALLOWED_METHODS.has(message.method) ||
+      !Array.isArray(message.args) || message.args.length > 12) {
+    if (message && typeof message.id === 'string') {
+      reply(event.source, message.id, { success: false, code: 'INVALID_REQUEST', message: 'Invalid backend request.' });
+    }
+    return;
+  }
+
+  const runner = google.script.run
+    .withSuccessHandler(function (result) { reply(event.source, message.id, result); })
+    .withFailureHandler(function () {
+      reply(event.source, message.id, { success: false, code: 'BACKEND_ERROR', message: 'Apps Script request failed.' });
+    });
+  runner[message.method].apply(runner, message.args);
+});
+
+parent.postMessage({ type: 'gas-bridge-ready', nonce: BRIDGE_NONCE }, FRONTEND_ORIGIN);
+</script>
+</body>
+</html>

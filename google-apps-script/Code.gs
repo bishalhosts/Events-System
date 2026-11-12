@@ -32,6 +32,17 @@ const tz_ = () => P.getProperty('TIMEZONE') || 'Asia/Kathmandu';
 
 // ---------- Web entry ----------
 function doGet(e) {
+  if (e.parameter.bridge === '1') {
+    const config = frontendConfig_();
+    const nonce = String(e.parameter.nonce || '');
+    if (!/^[A-Za-z0-9_-]{16,128}$/.test(nonce)) throw new Error('Invalid Apps Script bridge request.');
+    const bridge = HtmlService.createTemplateFromFile('Bridge');
+    bridge.frontendOrigin = config.origin;
+    bridge.bridgeNonce = nonce;
+    return bridge.evaluate().setTitle('Apps Script bridge')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
+      .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+  }
   if (e.parameter.verify !== undefined) {
     const v = HtmlService.createTemplateFromFile('Verify'); v.rid = String(e.parameter.verify).replace(/[^A-Za-z0-9-]/g, '').slice(0, 20);
     return v.evaluate().setTitle('Verify receipt').addMetaTag('viewport', 'width=device-width, initial-scale=1');
@@ -48,6 +59,18 @@ function doGet(e) {
   t.eventId = String(e.parameter.event || '').replace(/[^A-Za-z0-9_-]/g, '');
   return t.evaluate().setTitle('Event Scanner')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+}
+
+function frontendConfig_() {
+  const url = String(P.getProperty('FRONTEND_URL') || '').trim();
+  const match = url.match(/^(https:\/\/[a-z0-9.-]+)(\/[^?#]*)?\/?$/i);
+  if (!match) throw new Error('Set FRONTEND_URL to the GitHub Pages site URL in Apps Script Script Properties.');
+  return { origin: match[1].toLowerCase(), url: url.replace(/\/+$/, '') + '/' };
+}
+
+function receiptVerifyUrl_(receiptId) {
+  if (!P.getProperty('FRONTEND_URL')) return ScriptApp.getService().getUrl() + '?verify=' + encodeURIComponent(receiptId);
+  return frontendConfig_().url + 'verify.html?rid=' + encodeURIComponent(receiptId);
 }
 
 // ---------- Auth (server-side, every call) ----------

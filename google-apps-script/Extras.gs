@@ -27,7 +27,7 @@ function generateReceipt(sid, eventId, participantId, force) {
     const html = brandHeader_(b, 'Attendance Receipt') + '<table>' +
       row('Receipt ID', rid) + row('Event', ev[1]) + row('Participant', r[3]) + row('Email', r[4]) + row('Phone', r[5]) +
       row('Participant ID', r[2]) + row('Check-in', when) + row('Checked in by', r[8]) +
-      '</table><p style="color:#777;font-size:11px">Verify this receipt: ' + htmlEsc_(ScriptApp.getService().getUrl() + '?verify=' + rid) + '</p>' + brandFooter_(b);
+      '</table><p style="color:#777;font-size:11px">Verify this receipt: ' + htmlEsc_(receiptVerifyUrl_(rid)) + '</p>' + brandFooter_(b);
     const pdf = HtmlService.createHtmlOutput(html).getBlob().getAs('application/pdf').setName(rid + '.pdf');
     const file = subFolder_(eventId, 'Receipts').createFile(pdf);
     const lock = LockService.getScriptLock(); lock.waitLock(10000);

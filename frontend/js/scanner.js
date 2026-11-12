@@ -1,4 +1,4 @@
-const URL_EVENT_ID = window.EVENT_ID || '';
+const URL_EVENT_ID = new URLSearchParams(location.search).get('event') || '';
 const $ = id => document.getElementById(id), st = $('status');
 let scanner, busy = false, cameraRunning = false, torchOn = false;
 let SID = sessionStorage.getItem('scannerSid') || '', EVENT_ID = '', availableEvents = [];
@@ -23,8 +23,7 @@ function clearSession(){
   $('scannerApp').classList.add('hide'); $('eventPicker').classList.add('hide'); $('access').classList.remove('hide');
 }
 function scannerCall(fn, ...args){
-  return new Promise(resolve => google.script.run.withSuccessHandler(resolve)
-    .withFailureHandler(() => resolve({success:false,message:'Network error — please retry'}))[fn](...args));
+  return AppBackend.request(fn, ...args);
 }
 function chooseEvent(events, preferred){
   availableEvents = events || [];
@@ -78,7 +77,7 @@ $('scannerOut').onclick = async () => {
     catch(e) { stopError=true; }
     cameraRunning = false;
   }
-  if (SID) google.script.run.logout(SID);
+  if (SID) AppBackend.request('logout', SID);
   clearSession(); $('pin').value='';
   $('loginError').textContent=stopError?'Camera did not stop cleanly. Close this page before signing in again.':'';
   $('loginError').classList.toggle('hide',!stopError);
@@ -87,10 +86,12 @@ $('scannerOut').onclick = async () => {
 function submit(token){
   if (busy || !SID || !EVENT_ID) return;
   busy = true; show('', 'Checking…');
-  google.script.run
-    .withSuccessHandler(r => {
+  AppBackend.request('checkIn', SID, EVENT_ID, token).then(r => {
       busy = false;
       if (!r.success) {
+        if (r.code === 'BACKEND_UNAVAILABLE' || r.code === 'BACKEND_ERROR' || r.code === 'TIMEOUT') {
+          return show('warn', 'Network error — attendance NOT confirmed. Check the connection and scan again.');
+        }
         const messages = {
           INVALID_QR:'Invalid QR code', UNPUBLISHED:'Scanner unavailable for this event',
           UNAUTHORIZED:'Scanner access expired or revoked. Enter the PIN again.',
@@ -106,13 +107,13 @@ function submit(token){
       if (d.status === 'SUCCESS') {
         show('ok', '✔ ' + d.name + ' checked in at ' + d.checkin_time);
         if (navigator.vibrate) navigator.vibrate(150);
-        google.script.run.withSuccessHandler(x => { st.textContent += x.success ? ' · receipt ' + x.data.receipt_id : ' · receipt unavailable'; })
-          .withFailureHandler(() => { st.textContent += ' · receipt unavailable'; }).generateReceipt(SID, EVENT_ID, d.participant_id);
+        AppBackend.request('generateReceipt', SID, EVENT_ID, d.participant_id).then(x => {
+          st.textContent += x.success ? ' · receipt ' + x.data.receipt_id : ' · receipt unavailable';
+        });
       } else show('dup', 'Already checked in: ' + d.name + ' (' + d.checkin_time + ')');
       setTimeout(() => busy = false, 1200);
     })
-    .withFailureHandler(() => { busy = false; show('warn', 'Network error — attendance NOT confirmed. Scan again.'); })
-    .checkIn(SID, EVENT_ID, token);
+    .catch(() => { busy = false; show('warn', 'Network error — attendance NOT confirmed. Scan again.'); });
 }
 function permissionDenied(error){
   const text = String(error && (error.name + ' ' + error.message) || error).toLowerCase();

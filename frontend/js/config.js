@@ -1,0 +1,3 @@
+window.APP_CONFIG = {
+  appsScriptUrl: 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE'
+};

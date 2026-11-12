@@ -24,6 +24,14 @@ GitHub stores the project source; it does not host the running app. GitHub Pages
 
    This builds the frontend and uploads the files to Apps Script.
 
+### How the project files are added
+
+You do not need to copy or merge files manually. The `.clasp.json` setting points clasp to `google-apps-script/`, and `npm run push` uploads the complete Apps Script project from that folder.
+
+- Edit the page sources in `frontend/`. The build step combines each page's HTML, CSS, and JavaScript into the generated `Home.html`, `Admin.html`, `Scanner.html`, and `Verify.html` files.
+- Keep the `.gs` files separate. Apps Script loads them as one project, so their functions can call each other without concatenating them.
+- Do not edit the generated HTML files; rebuild them from `frontend/` with `npm run build` or `npm run push`.
+
 5. In Apps Script **Project Settings → Script properties**, add `ADMIN_PASSWORD_TEMP` with a strong password of at least 12 characters. In the editor, run `firstRun_` and approve the requested permissions. This initializes the app and configures the admin password.
 6. Choose **Deploy → New deployment → Web app**. Set **Execute as** to **Me** and **Who has access** to **Anyone**, deploy, and copy the web app URL ending in `/exec`.
 

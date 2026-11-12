@@ -1,8 +1,38 @@
-.landing{width:min(720px,100%);margin:12vh auto;padding:0 16px}
-.landing h1{margin-top:0}
-.entry-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:24px}
-.entry-option{display:flex;flex-direction:column;gap:8px;min-height:140px;padding:20px;border:1px solid var(--bd);border-radius:10px;color:var(--navy);text-decoration:none;background:#fff}
-.entry-option:hover,.entry-option:focus-visible{border-color:var(--navy);box-shadow:0 2px 8px #0002}
-.entry-option strong{font-size:20px}
-.entry-option span{color:#555;line-height:1.5}
-@media(max-width:520px){.landing{margin:8vh auto;padding:0 12px}.entry-options{grid-template-columns:1fr}.entry-option{min-height:0}}
+.landing { width: min(1080px, 100%); margin: clamp(52px, 10vh, 112px) auto 48px; padding: 0 24px; }
+.landing-top { display: flex; align-items: center; gap: 12px; margin-bottom: clamp(52px, 10vh, 94px); }
+.landing-top .brand-lockup { font-size: 14px; }
+.landing-copy { max-width: 660px; margin-bottom: 38px; }
+.landing h1 { max-width: 620px; margin-bottom: 17px; font-size: clamp(42px, 7vw, 76px); line-height: 1.02; letter-spacing: -.065em; }
+.landing-copy p { max-width: 540px; margin-bottom: 0; font-size: 18px; line-height: 1.7; }
+.entry-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.entry-option {
+  position: relative;
+  display: flex;
+  min-height: 214px;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 27px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  background: var(--paper);
+  color: var(--ink);
+  text-decoration: none;
+  box-shadow: var(--shadow);
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.entry-option::after { position: absolute; right: 25px; bottom: 20px; color: var(--brand); content: ">"; font-size: 24px; font-weight: 500; }
+.entry-option:hover { transform: translateY(-3px); border-color: #a7c7b5; box-shadow: 0 22px 48px rgb(26 47 37 / 12%); }
+.entry-number { margin-bottom: 22px; color: var(--brand); font-size: 12px; font-weight: 800; letter-spacing: .13em; }
+.entry-option strong { margin-bottom: 8px; font-size: 22px; letter-spacing: -.03em; }
+.entry-option span:last-of-type { max-width: 360px; padding-right: 24px; color: var(--muted); line-height: 1.65; }
+.landing-foot { margin-top: 28px; color: var(--muted); font-size: 13px; }
+@media (max-width: 600px) {
+  .landing { margin-top: 34px; padding: 0 18px; }
+  .landing-top { margin-bottom: 54px; }
+  .landing-copy { margin-bottom: 26px; }
+  .landing h1 { font-size: clamp(40px, 12vw, 60px); }
+  .landing-copy p { font-size: 16px; }
+  .entry-options { grid-template-columns: 1fr; gap: 12px; }
+  .entry-option { min-height: 180px; padding: 22px; }
+}

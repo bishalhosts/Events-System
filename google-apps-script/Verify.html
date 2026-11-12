@@ -4,31 +4,188 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Verify receipt</title>
 <style>
-:root{--navy:#0f1b3d;--bd:#e3e6ec;--ok:#14702f;--err:#b42318;--warn:#b25e00}
-*,*::before,*::after{box-sizing:border-box}
-body{font-family:system-ui,sans-serif;margin:0;background:#f7f8fa;color:var(--navy);min-width:320px}
-.card{min-width:0;background:#fff;border:1px solid var(--bd);border-radius:10px;padding:16px;margin-bottom:16px;box-shadow:0 1px 2px #0001}
-table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:8px;border-bottom:1px solid var(--bd);font-size:14px}
-button{min-height:44px;padding:9px 12px;border:0;border-radius:6px;background:var(--navy);color:#fff;cursor:pointer}button:disabled{opacity:.5}
-button.sec{background:#fff;color:var(--navy);border:1px solid var(--bd)}
-input,select{min-width:0;max-width:100%;min-height:44px;padding:8px;border:1px solid var(--bd);border-radius:6px;font:inherit}
-button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #6084d8;outline-offset:2px}
-img,canvas,video{max-width:100%}
-.hide{display:none}
-@media(max-width:640px){
-  .card{padding:12px;margin-bottom:12px}
-  table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
-  th,td{white-space:nowrap}
-  .row>input,.row>select{flex:1 1 160px}
+:root {
+  color-scheme: light;
+  --ink: #1b2b25;
+  --muted: #64736c;
+  --line: #dce5df;
+  --paper: #ffffff;
+  --canvas: #f3f6f2;
+  --brand: #176b58;
+  --brand-dark: #105341;
+  --brand-soft: #e7f2ed;
+  --ok: #176b48;
+  --err: #b33a32;
+  --warn: #a65c12;
+  --shadow: 0 16px 40px rgb(26 47 37 / 7%), 0 2px 6px rgb(26 47 37 / 4%);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  color: var(--ink);
+  background:
+    radial-gradient(ellipse at 86% 0%, rgb(221 238 228 / 60%), transparent 34rem),
+    var(--canvas);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, p { margin-top: 0; }
+h1, h2, h3, h4 { color: var(--ink); line-height: 1.2; letter-spacing: -.025em; }
+h1 { font-size: clamp(2rem, 4vw, 3.25rem); }
+h2 { font-size: clamp(1.45rem, 3vw, 2rem); }
+h3 { font-size: 1.25rem; }
+p { color: var(--muted); }
+a { color: var(--brand); }
+small { color: var(--muted); }
+
+.card {
+  min-width: 0;
+  margin-bottom: 18px;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--paper);
+  box-shadow: var(--shadow);
+}
+
+button {
+  min-height: 42px;
+  padding: 10px 15px;
+  border: 1px solid var(--brand);
+  border-radius: 9px;
+  background: var(--brand);
+  color: #fff;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background .16s ease, border-color .16s ease, transform .16s ease, box-shadow .16s ease;
+}
+button:hover:not(:disabled) { border-color: var(--brand-dark); background: var(--brand-dark); box-shadow: 0 5px 14px rgb(23 107 88 / 18%); }
+button:active:not(:disabled) { transform: translateY(1px); }
+button:disabled { opacity: .48; cursor: not-allowed; }
+button.sec { border-color: var(--line); background: #fff; color: var(--ink); }
+button.sec:hover:not(:disabled) { border-color: #b7c9be; background: #f7faf7; box-shadow: none; }
+
+input, select, textarea {
+  min-width: 0;
+  max-width: 100%;
+  min-height: 42px;
+  padding: 9px 12px;
+  border: 1px solid #cbd8d0;
+  border-radius: 9px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+}
+input::placeholder { color: #85938b; }
+input:focus, select:focus, textarea:focus { border-color: var(--brand); outline: 3px solid rgb(23 107 88 / 13%); }
+button:focus-visible, a:focus-visible { outline: 3px solid #6aa997; outline-offset: 3px; }
+img, canvas, video { max-width: 100%; }
+
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 12px 13px; border-bottom: 1px solid #e8eee9; text-align: left; vertical-align: middle; }
+th { color: #607068; font-size: 11px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
+td { font-size: 14px; }
+tbody tr:hover { background: #f8faf8; }
+td button.sec { min-height: 34px; padding: 6px 10px; font-size: 13px; }
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px clamp(16px, 4vw, 42px);
+  border-bottom: 1px solid var(--line);
+  background: rgb(255 255 255 / 90%);
+  box-shadow: 0 2px 12px rgb(26 47 37 / 3%);
+}
+header a { color: var(--brand); font-weight: 650; text-decoration: none; }
+.brand-lockup { display: flex; align-items: center; gap: 11px; font-weight: 750; letter-spacing: -.02em; }
+.brand-mark { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 12px; background: var(--brand); color: #fff; font-size: 17px; font-weight: 800; }
+.eyebrow { margin-bottom: 9px; color: var(--brand); font-size: 11px; font-weight: 800; letter-spacing: .15em; text-transform: uppercase; }
+.hide { display: none !important; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+.pill { display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border-radius: 999px; font-size: 11px; font-weight: 750; letter-spacing: .02em; }
+.on { background: #e6f4eb; color: var(--ok); }
+.off { background: #f9eae8; color: var(--err); }
+.row { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 10px 0; }
+
+dialog {
+  width: min(720px, calc(100vw - 32px));
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 32px);
+  padding: 24px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 28px 90px rgb(16 36 27 / 24%);
+}
+dialog::backdrop { background: rgb(17 33 26 / 48%); backdrop-filter: blur(3px); }
+#msg {
+  position: fixed;
+  z-index: 10;
+  right: 20px;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  display: none;
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 13px 17px;
+  border: 1px solid rgb(255 255 255 / 15%);
+  border-radius: 12px;
+  background: #213b30;
+  color: #fff;
+  box-shadow: var(--shadow);
+}
+.verify-page { width: calc(100% - 32px); max-width: 480px; margin: clamp(42px, 10vh, 100px) auto; }
+.verify-card { padding: clamp(24px, 6vw, 38px); }
+.verify-card h1 { margin: 12px 0 10px; font-size: clamp(28px, 6vw, 38px); }
+.verify-card > p { line-height: 1.65; }
+.verify-card label { display: block; margin: 23px 0 7px; color: #52635a; font-size: 13px; font-weight: 700; }
+.verify-card input, .verify-card button { width: 100%; }
+.verify-card button { margin-top: 11px; }
+.verify-icon { display: grid; width: 45px; height: 45px; margin-bottom: 22px; place-items: center; border: 1px solid #cce2d3; border-radius: 14px; background: var(--brand-soft); color: var(--brand); font-size: 22px; font-weight: 750; }
+#out { min-height: 24px; margin: 15px 0 0; font-size: 14px; font-weight: 650; overflow-wrap: anywhere; }
+
+@media (max-width: 700px) {
+  .card { padding: 17px; margin-bottom: 13px; border-radius: 13px; }
+  header { gap: 10px; padding: 12px 16px; }
+  .row > input, .row > select { flex: 1 1 150px; }
+  table { display: block; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  th, td { white-space: nowrap; }
+  dialog { width: calc(100vw - 20px); max-width: calc(100vw - 20px); max-height: calc(100vh - 20px); padding: 17px; }
+  #map .row label { flex: 1 0 100%; width: auto !important; }
+  #msg { right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); max-width: calc(100vw - 24px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
 
 </style>
 </head>
-<body><div class="card" style="max-width:420px;margin:10vh auto">
-<h3>Verify attendance receipt</h3>
-<input id="rid" placeholder="RC-XXXXXXXX" style="width:90%" value="<?= rid ?>"><br><br>
-<button id="go">Verify</button>
-<p id="out"></p></div>
+<body>
+<header><span class="brand-lockup"><span class="brand-mark" aria-hidden="true">Q</span>QR Event System</span><a href="?">Home</a></header>
+<main class="verify-page">
+  <section class="card verify-card">
+    <div class="verify-icon" aria-hidden="true">OK</div>
+    <div class="eyebrow">Receipt lookup</div>
+    <h1>Verify attendance</h1>
+    <p>Enter the receipt code to confirm that an event check-in was recorded.</p>
+    <label for="rid">Receipt code</label>
+    <input id="rid" placeholder="RC-XXXXXXXX" value="<?= rid ?>" autocomplete="off">
+    <button id="go">Verify receipt</button>
+    <p id="out" role="status" aria-live="polite"></p>
+  </section>
+</main>
 <script>
 const out = document.getElementById('out');
 document.getElementById('go').onclick = () => {

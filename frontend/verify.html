@@ -4,10 +4,19 @@
 <title>Verify receipt</title>
 <!--@css css/main.css-->
 </head>
-<body><div class="card" style="max-width:420px;margin:10vh auto">
-<h3>Verify attendance receipt</h3>
-<input id="rid" placeholder="RC-XXXXXXXX" style="width:90%" value="<?= rid ?>"><br><br>
-<button id="go">Verify</button>
-<p id="out"></p></div>
+<body>
+<header><span class="brand-lockup"><span class="brand-mark" aria-hidden="true">Q</span>QR Event System</span><a href="?">Home</a></header>
+<main class="verify-page">
+  <section class="card verify-card">
+    <div class="verify-icon" aria-hidden="true">OK</div>
+    <div class="eyebrow">Receipt lookup</div>
+    <h1>Verify attendance</h1>
+    <p>Enter the receipt code to confirm that an event check-in was recorded.</p>
+    <label for="rid">Receipt code</label>
+    <input id="rid" placeholder="RC-XXXXXXXX" value="<?= rid ?>" autocomplete="off">
+    <button id="go">Verify receipt</button>
+    <p id="out" role="status" aria-live="polite"></p>
+  </section>
+</main>
 <!--@js js/verify.js-->
 </body></html>

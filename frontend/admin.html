@@ -9,23 +9,39 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
-<dialog id="dlg" style="border:1px solid #e3e6ec;border-radius:10px;min-width:min(640px,92vw)"><div style="text-align:right"><button class="sec" id="dlgClose">Close</button></div><div id="dlgBody"></div></dialog>
+<dialog id="dlg" aria-label="Admin tools"><button class="sec" id="dlgClose" type="button">Close</button><div id="dlgBody"></div></dialog>
 <div id="msg"></div>
-<div id="loginView" style="max-width:340px;margin:12vh auto" class="card">
-  <h3>Admin sign in</h3><form id="adminLogin">
-  <label for="pw">Admin password</label><input id="pw" type="password" autocomplete="current-password" required maxlength="256" style="width:100%;margin:8px 0 16px">
-  <button id="liBtn" type="submit">Sign in</button></form></div>
+<div id="loginView" class="card">
+  <div class="brand-lockup"><span class="brand-mark" aria-hidden="true">Q</span>QR Event System</div>
+  <h3>Welcome back</h3><p>Sign in to manage your events and check-in teams.</p>
+  <form id="adminLogin">
+    <label for="pw">Admin password</label>
+    <input id="pw" type="password" autocomplete="current-password" required maxlength="256">
+    <button id="liBtn" type="submit">Sign in</button>
+  </form>
+</div>
 
 <div id="app" class="hide">
-<header><span>Event Admin</span><span><span id="who"></span> <button class="sec" id="navAccess">Access</button> <button class="sec" id="navSet">Settings</button> <button class="sec" id="navAudit">Audit</button> <button class="sec" id="out">Sign out</button></span></header>
+<header>
+  <span class="admin-brand"><span class="brand-mark" aria-hidden="true">Q</span>Event Admin</span>
+  <span><span id="who"></span> <button class="sec" id="navAccess">Access</button> <button class="sec" id="navSet">Settings</button> <button class="sec" id="navAudit">Audit</button> <button class="sec" id="out">Sign out</button></span>
+</header>
 <main>
  <div id="listView">
+  <div class="page-heading"><div><div class="eyebrow">Workspace</div><h1>Your events</h1><p>Keep your event details, guests, and check-in teams in one place.</p></div></div>
   <div class="card stats"><div class="stat"><b id="dE">–</b>Events</div><div class="stat"><b id="dA">–</b>Active</div><div class="stat"><b id="dS">–</b>Scanners live</div><div class="stat"><b id="dP">–</b>Participants</div><div class="stat"><b id="dC">–</b>Checked in</div></div>
-  <div class="card"><div class="row"><input id="newName" placeholder="Event name"><input id="newDate" type="date"><input id="newVenue" placeholder="Venue"><button id="create">Create event</button></div></div>
-  <div class="card"><div class="row"><input id="evQ" placeholder="Search events"><select id="evF"><option value="">All statuses</option><option>ACTIVE</option><option>ARCHIVED</option></select></div><table><thead><tr><th>Event</th><th>Date</th><th>Scanner</th><th></th></tr></thead><tbody id="events"></tbody></table><div id="noEv" class="hide">No events yet.</div></div>
+  <section id="createPanel" class="card">
+    <div class="card-title"><h2>Create an event</h2><p>Start with the essentials. You can add the rest later.</p></div>
+    <div class="row"><label class="sr-only" for="newName">Event name</label><input id="newName" placeholder="Event name"><label class="sr-only" for="newDate">Event date</label><input id="newDate" type="date" aria-label="Event date"><label class="sr-only" for="newVenue">Venue</label><input id="newVenue" placeholder="Venue"><button id="create">Create event</button></div>
+  </section>
+  <section class="card">
+    <div class="card-title"><h2>All events</h2><p>Open an event to manage its guests, QR codes, and attendance.</p></div>
+    <div class="row"><label class="sr-only" for="evQ">Search events</label><input id="evQ" placeholder="Search events"><label class="sr-only" for="evF">Filter by event status</label><select id="evF"><option value="">All statuses</option><option>ACTIVE</option><option>ARCHIVED</option></select></div>
+    <table><thead><tr><th>Event</th><th>Date</th><th>Scanner</th><th>Actions</th></tr></thead><tbody id="events"></tbody></table><div id="noEv" class="hide">No events yet.</div>
+  </section>
  </div>
  <div id="evView" class="hide">
-  <button class="sec" id="back">← Events</button> <h2 id="evName"></h2>
+  <button class="sec" id="back">← All events</button> <h2 id="evName"></h2>
   <div class="card stats"><div class="stat"><b id="sT">–</b>Registered</div><div class="stat"><b id="sC">–</b>Checked in</div><div class="stat"><b id="sR">–</b>Remaining</div><div class="stat"><b id="sP">–</b>Attendance</div></div>
   <div class="card"><b>Recent check-ins</b><table><tbody id="recent"></tbody></table></div>
   <div class="card"><div class="row"><button id="genQR">Generate missing QR tokens</button><button class="sec" id="impBtn">Import participants…</button><button id="saveQR">Save QR to Drive + build Doc</button><button class="sec" id="openDoc">Open QR Doc</button><button class="sec" id="zipQR">Download all QR (ZIP)</button><button class="sec" id="csvA">Export attendance CSV</button><button class="sec" id="csvN">Export not arrived CSV</button><button class="sec" id="rep">Reports</button><button class="sec" id="att">Attendance</button><button class="sec" id="pdfRep">PDF report</button><button class="sec" id="csvP">Export participants CSV</button><button class="sec" id="conn">Connect spreadsheet</button><button class="sec" id="walk">Walk-in</button></div>

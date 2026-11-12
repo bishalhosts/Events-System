@@ -7,14 +7,15 @@
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 </head>
 <body>
-<header><span>Event Scanner <span id="evid"></span></span><a href="?">Home</a></header>
+<header><span class="brand-lockup scanner-header-title"><span class="brand-mark" aria-hidden="true">Q</span><span>Event Scanner <span id="evid"></span></span></span><a href="?">Home</a></header>
 <div id="access" class="card access">
-  <h2>Scanner access</h2><p>Enter the PIN provided by your administrator.</p>
-  <form id="scannerLogin"><label for="pin">Scanner PIN</label><input id="pin" type="password" inputmode="numeric" autocomplete="one-time-code" maxlength="10" required>
-  <button id="loginButton" type="submit">Continue</button></form>
+  <div class="eyebrow">Staff check-in</div>
+  <h2>Ready to welcome your guests?</h2><p>Enter the event access PIN shared by your administrator to get started.</p>
+  <form id="scannerLogin"><label for="pin">Scanner PIN</label><input id="pin" type="password" inputmode="numeric" autocomplete="one-time-code" maxlength="10" required placeholder="Enter your PIN">
+  <button id="loginButton" type="submit">Continue to check-in</button></form>
   <p id="loginError" class="hide" role="alert"></p>
 </div>
-<div id="eventPicker" class="card access hide"><label for="eventSelect">Select event</label><select id="eventSelect"></select><button id="useEvent">Continue to scanner</button></div>
+<div id="eventPicker" class="card access hide"><div class="eyebrow">Your access</div><h2>Choose an event</h2><p>Select which event you are checking in.</p><label for="eventSelect">Available events</label><select id="eventSelect"></select><button id="useEvent">Continue to scanner</button></div>
 <div id="scannerApp" class="hide">
   <div class="row scanner-top"><b id="activeEvent"></b><button class="sec" id="scannerOut">Sign out</button></div>
   <div id="reader"></div>

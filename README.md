@@ -78,7 +78,8 @@ google-apps-script/            <- UPLOADED TO GOOGLE (clasp rootDir)
 tests/offline-harness.js       mock-based tests
 package.json  .clasp.json.example  .claspignore  .gitignore  .vscode/
 ```
-Apps Script cannot load `.css`/`.js` files directly, so `npm run build` inlines them into the three generated `.html` files (committed, so a plain `clasp push` also works).
+Apps Script cannot load `.css`/`.js` files directly, so `npm run build` inlines them into the four generated `.html` files (committed, so a plain `clasp push` also works).
+No manual frontend merge is needed: the build bundles each page's CSS and JavaScript into its generated HTML. Apps Script loads all `.gs` files in a project together, so keep backend files grouped by feature; combining them would only create larger files, not a smaller deployment.
 
 ## 5. Data layout
 **Drive** (created automatically)
